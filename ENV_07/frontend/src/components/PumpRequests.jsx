@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { api } from "../api.js";
-import { fmt, fmtTime, MANUAL_MAX_LITERS, PUMP_FLOW, REQ_STATUS, secondsFor } from "../utils.js";
+import { blockSign, clampMax, fmt, fmtTime, MANUAL_MAX_LITERS, PUMP_FLOW, REQ_STATUS, secondsFor } from "../utils.js";
 
 export default function PumpRequests({ can, notify, deviceOk, busy, onChange, refreshKey }) {
   const [rows, setRows] = useState([]);
@@ -49,12 +49,13 @@ export default function PumpRequests({ can, notify, deviceOk, busy, onChange, re
             {canApprove ? " Bạn có quyền duyệt nên lệnh được gửi ngay (vẫn ghi tên bạn là người duyệt)."
                         : " Yêu cầu sẽ chờ Kỹ sư canh tác hoặc Quản trị duyệt mới bơm."}</p>
           <div className="row">
-            <input type="number" min="0.05" max={MANUAL_MAX_LITERS} step="0.05" value={liters} onChange={(e) => setLiters(e.target.value)} />
+            <input type="number" min="0.05" max={MANUAL_MAX_LITERS} step="0.05" value={liters} onKeyDown={blockSign}
+                   onChange={(e) => setLiters(clampMax(e.target.value, MANUAL_MAX_LITERS))} />
             <span className="unit">lít</span>
             <span className="conv">= {secondsFor(L, PUMP_FLOW)} giây bơm</span>
           </div>
           <label className="block-label">Lý do <span className="muted">{n}/10 ký tự</span>
-            <textarea rows="2" value={reason} onChange={(e) => setReason(e.target.value)}
+            <textarea rows="2" maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)}
                       placeholder="vd: lá héo lúc trưa, đất mặt khô nhưng cảm biến chưa báo" />
           </label>
           <button className="btn water" disabled={n < 10 || L <= 0 || L > MANUAL_MAX_LITERS || (canApprove && (!deviceOk || busy))}>

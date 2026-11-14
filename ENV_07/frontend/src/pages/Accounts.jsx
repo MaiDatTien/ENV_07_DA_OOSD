@@ -114,14 +114,14 @@ export default function Accounts({ notify, can, me }) {
             <article className="panel edit-panel">
               <h2>Sửa tài khoản: {editing.Username}</h2>
               <form className="form" onSubmit={saveEdit}>
-                <label>Họ tên<input value={editing.full_name} onChange={(e) => setEditing({ ...editing, full_name: e.target.value })} required /></label>
+                <label>Họ tên<input maxLength={100} value={editing.full_name} onChange={(e) => setEditing({ ...editing, full_name: e.target.value })} required /></label>
                 <label>Vai trò
                   <select value={editing.role} onChange={(e) => setEditing({ ...editing, role: e.target.value })}>
                     {ROLE_ORDER.map((r) => <option key={r} value={r}>{ROLE[r]}</option>)}
                   </select>
                 </label>
                 <label className="wide">Mật khẩu mới (để trống nếu không đổi)
-                  <input type="password" value={editing.new_password} minLength={6} autoComplete="new-password"
+                  <input type="password" value={editing.new_password} minLength={6} maxLength={100} autoComplete="new-password"
                          onChange={(e) => setEditing({ ...editing, new_password: e.target.value })} /></label>
                 <div className="row wide">
                   <button className="btn water">Lưu thay đổi</button>
@@ -133,9 +133,10 @@ export default function Accounts({ notify, can, me }) {
           <article className="panel">
             <h2>Thêm tài khoản</h2>
             <form className="form" onSubmit={submit}>
-              <label>Tên đăng nhập<input value={f.username} onChange={set("username")} required minLength={3} /></label>
-              <label>Họ tên<input value={f.full_name} onChange={set("full_name")} required /></label>
-              <label>Mật khẩu<input type="password" value={f.password} onChange={set("password")} required minLength={6} /></label>
+              <label>Tên đăng nhập<input value={f.username} onChange={set("username")} required minLength={3} maxLength={50}
+                pattern="[A-Za-z0-9_.]+" title="Chữ không dấu, số, dấu chấm hoặc gạch dưới" /></label>
+              <label>Họ tên<input maxLength={100} value={f.full_name} onChange={set("full_name")} required /></label>
+              <label>Mật khẩu<input type="password" value={f.password} onChange={set("password")} required minLength={6} maxLength={100} /></label>
               <label>Vai trò
                 <select value={f.role} onChange={set("role")}>
                   {ROLE_ORDER.map((r) => <option key={r} value={r}>{ROLE[r]}</option>)}

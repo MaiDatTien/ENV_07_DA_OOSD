@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
-import { secondsFor } from "../utils.js";
+import { blockSign, clampMax, secondsFor } from "../utils.js";
 
 export default function OverrideDialog({ rec, plant, onClose, onDone }) {
   const ref = useRef();
@@ -15,6 +15,12 @@ export default function OverrideDialog({ rec, plant, onClose, onDone }) {
   const n = reason.trim().length;
   const flow = plant?.pump_flow_lpm || 0;
   const maxL = plant?.max_liters_per_watering;
+  const L = Number(liters);
+  const badL = mode === "adjust" && (liters === "" || Number.isNaN(L) || L < 0 || (maxL !== undefined && L > maxL));
+  const nowLocal = () => {
+    const d = new Date(Date.now() - new Date().getTimezoneOffset() * 60000);
+    return d.toISOString().slice(0, 16);
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -47,23 +53,24 @@ export default function OverrideDialog({ rec, plant, onClose, onDone }) {
           <>
             <label>Lượng nước tối đa mới (lít){maxL ? ` · không quá ${maxL} L` : ""}
               <span className="row">
-                <input type="number" step="0.05" min="0" max={maxL} value={liters} onChange={(e) => setLiters(e.target.value)} />
+                <input type="number" step="0.05" min="0" max={maxL} value={liters} onKeyDown={blockSign}
+                       onChange={(e) => setLiters(clampMax(e.target.value, maxL))} required />
                 <span className="conv">= {secondsFor(Number(liters) || 0, flow)} giây bơm ({flow} L/phút)</span>
               </span>
             </label>
             <label>Kéo dài hiệu lực đến (không bắt buộc)
-              <input type="datetime-local" value={validTo} onChange={(e) => setValidTo(e.target.value)} />
+              <input type="datetime-local" min={nowLocal()} value={validTo} onChange={(e) => setValidTo(e.target.value)} />
             </label>
           </>
         )}
         <label>Lý do <span className="muted">{n}/10 ký tự</span>
-          <textarea rows="3" value={reason} onChange={(e) => setReason(e.target.value)}
+          <textarea rows="3" maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)}
                     placeholder="vd: chiều nay dự báo mưa rào, giảm còn một nửa" />
         </label>
         <p className="err">{err}</p>
         <div className="row end">
           <button type="button" className="btn" onClick={() => ref.current.close()}>Hủy</button>
-          <button className="btn warn" disabled={n < 10}>{mode === "reject" ? "Xác nhận từ chối" : "Xác nhận ghi đè"}</button>
+          <button className="btn warn" disabled={n < 10 || badL}>{mode === "reject" ? "Xác nhận từ chối" : "Xác nhận ghi đè"}</button>
         </div>
       </form>
     </dialog>

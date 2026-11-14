@@ -89,7 +89,9 @@ CREATE TABLE SensorReadings (
     SoilRaw      INT          NULL,
     SoilMoisture DECIMAL(5,2) NOT NULL,
     AirTemp      DECIMAL(5,2) NULL,
-    AirHumidity  DECIMAL(5,2) NULL
+    AirHumidity  DECIMAL(5,2) NULL,
+    CONSTRAINT CK_Readings_Soil     CHECK (SoilMoisture BETWEEN 0 AND 100),
+    CONSTRAINT CK_Readings_Humidity CHECK (AirHumidity IS NULL OR AirHumidity BETWEEN 0 AND 100)
 );
 
 CREATE TABLE Recommendations (
@@ -112,6 +114,8 @@ CREATE TABLE Recommendations (
     AppliedBy        INT           NULL REFERENCES Users(UserId),
     AppliedAt        DATETIME2     NULL,
     CONSTRAINT CK_Rec_Window   CHECK (ValidFrom < ValidTo),
+    CONSTRAINT CK_Rec_Moisture CHECK (TriggerBelow BETWEEN 0 AND 100 AND MoistureAtCreate BETWEEN 0 AND 100
+                                      AND (TargetMoisture IS NULL OR TargetMoisture BETWEEN 0 AND 100)),
     CONSTRAINT CK_Rec_Duration CHECK (DurationSec >= 0),
     CONSTRAINT CK_Rec_Volume   CHECK (VolumeLiters >= 0),
     CONSTRAINT CK_Rec_Status   CHECK (Status IN ('PROPOSED', 'OVERRIDDEN', 'APPLIED', 'REJECTED', 'EXPIRED'))
@@ -247,6 +251,11 @@ BEGIN
     SELECT @n AS ExpiredCount;
 END
 GO
+
+ALTER TABLE SensorReadings ADD CONSTRAINT CK_Readings_Soil CHECK (SoilMoisture BETWEEN 0 AND 100);
+ALTER TABLE SensorReadings ADD CONSTRAINT CK_Readings_Humidity CHECK (AirHumidity IS NULL OR AirHumidity BETWEEN 0 AND 100);
+ALTER TABLE Recommendations ADD CONSTRAINT CK_Rec_Moisture CHECK (TriggerBelow BETWEEN 0 AND 100
+  AND MoistureAtCreate BETWEEN 0 AND 100 AND (TargetMoisture IS NULL OR TargetMoisture BETWEEN 0 AND 100));
 
 PRINT N'Đã tạo xong ENV07_DB (13 bảng, 3 view, 1 procedure).';
 GO

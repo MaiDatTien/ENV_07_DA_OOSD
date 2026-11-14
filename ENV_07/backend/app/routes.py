@@ -72,20 +72,20 @@ class CropIn(BaseModel):
 class PlantingIn(BaseModel):
     crop_id: int
     planted_date: date
-    daily_quota_liters: float = Field(ge=0)
-    max_liters_per_watering: float = Field(gt=0)
+    daily_quota_liters: float = Field(ge=0, le=1000)
+    max_liters_per_watering: float = Field(gt=0, le=10)
     note: Optional[str] = None
 
 
 class PlantingUpdateIn(BaseModel):
     planted_date: date
-    daily_quota_liters: float = Field(ge=0)
-    max_liters_per_watering: float = Field(gt=0)
+    daily_quota_liters: float = Field(ge=0, le=1000)
+    max_liters_per_watering: float = Field(gt=0, le=10)
 
 
 class StageIn(BaseModel):
-    name: str
-    duration_days: int = Field(gt=0)
+    name: str = Field(min_length=1, max_length=100)
+    duration_days: int = Field(gt=0, le=3650)
     moisture_min: float = Field(ge=0, le=100)
     moisture_max: float = Field(ge=0, le=100)
 
@@ -104,7 +104,7 @@ class ReviewIn(BaseModel):
 
 
 class OverrideIn(BaseModel):
-    volume_liters: float = Field(ge=0)
+    volume_liters: float = Field(ge=0, le=10)
     reason: str
     valid_to: Optional[datetime] = None
 

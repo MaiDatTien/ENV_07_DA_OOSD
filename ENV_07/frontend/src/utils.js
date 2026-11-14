@@ -28,3 +28,29 @@ export const litersFor = (seconds, flow) => Math.round((seconds / 60) * flow * 1
 export const REQ_STATUS = { PENDING: "Chờ duyệt", APPROVED: "Đã duyệt", REJECTED: "Từ chối", CANCELLED: "Đã hủy" };
 export const PUMP_FLOW = 2;
 export const MANUAL_MAX_LITERS = 2;
+
+export const MAX_LITERS_PER_WATERING = 10;
+export const MAX_DAILY_LITERS = 1000;
+export const MAX_STAGE_DAYS = 3650;
+
+export const blockSign = (e) => {
+  if (["-", "+", "e", "E"].includes(e.key)) e.preventDefault();
+};
+
+export const blockSignDot = (e) => {
+  if (["-", "+", "e", "E", ".", ","].includes(e.key)) e.preventDefault();
+};
+
+export const clampMax = (v, max) => {
+  if (v === "" || v === null || v === undefined) return "";
+  const n = Number(String(v).replace(",", "."));
+  if (Number.isNaN(n)) return "";
+  if (n < 0) return "0";
+  if (max !== undefined && n > max) return String(max);
+  return v;
+};
+
+export const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import date, datetime, timedelta
 from typing import Optional
 
@@ -40,12 +41,16 @@ class AuthService:
         full_name = (full_name or "").strip()
         if not full_name:
             raise DomainError("Chưa nhập họ tên")
+        if len(full_name) > 100:
+            raise DomainError("Họ tên tối đa 100 ký tự")
         return full_name
 
     @staticmethod
     def _check_password(password: str) -> None:
         if len(password or "") < 6:
             raise DomainError("Mật khẩu ít nhất 6 ký tự")
+        if len(password) > 100:
+            raise DomainError("Mật khẩu tối đa 100 ký tự")
 
     @staticmethod
     def _check_role(role: str) -> None:
@@ -54,8 +59,8 @@ class AuthService:
 
     def create_user(self, username: str, full_name: str, password: str, role: str) -> None:
         username = (username or "").strip()
-        if len(username) < 3 or " " in username:
-            raise DomainError("Tên đăng nhập ít nhất 3 ký tự, không có dấu cách")
+        if not re.fullmatch(r"[A-Za-z0-9_.]{3,50}", username):
+            raise DomainError("Tên đăng nhập 3 đến 50 ký tự, chỉ gồm chữ không dấu, số, dấu chấm hoặc gạch dưới")
         full_name = self._check_name(full_name)
         self._check_password(password)
         self._check_role(role)
@@ -160,21 +165,32 @@ class IrrigationService:
         if not info["connected"]:
             raise DomainError(f"Không thể bơm: {info['message']}. Kiểm tra nguồn và WiFi của ESP32.")
 
-    def add_crop(self, name: str, description: Optional[str], user_id: int) -> int:
-        name = name.strip()
+    @staticmethod
+    def _check_crop(name: str, description: Optional[str]) -> tuple[str, Optional[str]]:
+        name = (name or "").strip()
+        description = (description or "").strip() or None
         if not name:
             raise DomainError("Chưa nhập tên loại cây")
+        if len(name) > 100:
+            raise DomainError("Tên loại cây tối đa 100 ký tự")
+        if description and len(description) > 300:
+            raise DomainError("Ghi chú loại cây tối đa 300 ký tự")
+        return name, description
+
+    def add_crop(self, name: str, description: Optional[str], user_id: int) -> int:
+        name, description = self._check_crop(name, description)
         if self.crops.by_name(name):
             raise DomainError("Loại cây này đã có")
-        return self.crops.add(name, (description or "").strip() or None, user_id)
+        return self.crops.add(name, description, user_id)
 
     def update_crop(self, crop_id: int, name: str, description: Optional[str]) -> None:
         if not self.crops.get(crop_id):
             raise NotFound("Không có loại cây này")
-        other = self.crops.by_name(name.strip())
+        name, description = self._check_crop(name, description)
+        other = self.crops.by_name(name)
         if other and other["CropId"] != crop_id:
             raise DomainError("Tên loại cây bị trùng")
-        self.crops.update(crop_id, name.strip(), (description or "").strip() or None)
+        self.crops.update(crop_id, name, description)
 
     def delete_crop(self, crop_id: int) -> None:
         crop = next((c for c in self.crops.list() if c["CropId"] == crop_id), None)
@@ -193,6 +209,9 @@ class IrrigationService:
                   for i, it in enumerate(items)]
         for st in stages:
             st.validate()
+        names = [st.name.lower() for st in stages]
+        if len(set(names)) != len(names):
+            raise DomainError("Tên các giai đoạn không được trùng nhau")
         self.crops.replace_stages(crop_id, stages)
 
     def plant_info(self) -> Optional[dict]:
@@ -206,6 +225,15 @@ class IrrigationService:
                 "day": p.day_number(today),
                 "current_stage": stage.__dict__ if stage else None}
 
+    @staticmethod
+    def _check_planting(p: Plant) -> None:
+        p.validate()
+        if p.planted_date > date.today():
+            raise DomainError("Ngày trồng không được ở tương lai")
+        if p.seconds_for(p.max_liters_per_watering) > settings.MAX_PUMP_SEC:
+            raise DomainError(f"Mỗi lần tưới tối đa {p.liters_for(settings.MAX_PUMP_SEC):g} lít "
+                              f"({settings.MAX_PUMP_SEC} giây bơm)")
+
     def start_planting(self, crop_id: int, planted_date: date, quota: float, max_per: float,
                        note: Optional[str], user_id: int) -> int:
         crop = self.crops.get(crop_id)
@@ -216,13 +244,16 @@ class IrrigationService:
         if self.pumps.in_progress():
             raise DomainError("Đang có lần tưới chưa xong, dừng bơm trước khi đổi mùa vụ")
         p = Plant(crop["Name"], planted_date, quota, max_per, settings.PUMP_FLOW_LPM, crop_id=crop_id)
-        p.validate()
-        return self.plantings.start(p, (note or "").strip() or None, user_id)
+        self._check_planting(p)
+        note = (note or "").strip() or None
+        if note and len(note) > 300:
+            raise DomainError("Ghi chú mùa vụ tối đa 300 ký tự")
+        return self.plantings.start(p, note, user_id)
 
     def update_planting(self, planted_date: date, quota: float, max_per: float) -> None:
         cur = self._plant()
         p = Plant(cur.name, planted_date, quota, max_per, settings.PUMP_FLOW_LPM)
-        p.validate()
+        self._check_planting(p)
         self.plantings.update_active(planted_date, quota, max_per)
 
     def finish_planting(self) -> None:

@@ -5,6 +5,8 @@ from datetime import date, datetime, timedelta
 from typing import Optional
 
 MIN_REASON_LENGTH = 10
+MAX_REASON_LENGTH = 500
+MAX_NOTE_LENGTH = 300
 
 
 class DomainError(ValueError):
@@ -159,6 +161,8 @@ class Recommendation:
         reason = (reason or "").strip()
         if len(reason) < MIN_REASON_LENGTH:
             raise DomainError(f"Lý do phải có ít nhất {MIN_REASON_LENGTH} ký tự")
+        if len(reason) > MAX_REASON_LENGTH:
+            raise DomainError(f"Lý do tối đa {MAX_REASON_LENGTH} ký tự")
         return reason
 
     def override(self, new_liters: float, reason: str, plant: Plant,
@@ -209,6 +213,8 @@ class PumpRequest:
         reason = (reason or "").strip()
         if len(reason) < MIN_REASON_LENGTH:
             raise DomainError(f"Bơm ngoài đề xuất phải ghi lý do ít nhất {MIN_REASON_LENGTH} ký tự")
+        if len(reason) > MAX_REASON_LENGTH:
+            raise DomainError(f"Lý do tối đa {MAX_REASON_LENGTH} ký tự")
         if liters <= 0:
             raise DomainError("Số lít phải > 0")
         seconds = plant.seconds_for(liters)
@@ -221,9 +227,12 @@ class PumpRequest:
     def approve(self, reviewer_id: int, note: Optional[str] = None) -> None:
         if self.status != "PENDING":
             raise DomainError("Yêu cầu này đã được xử lý")
+        note = (note or "").strip() or None
+        if note and len(note) > MAX_NOTE_LENGTH:
+            raise DomainError(f"Ghi chú duyệt tối đa {MAX_NOTE_LENGTH} ký tự")
         self.status = "APPROVED"
         self.reviewed_by = reviewer_id
-        self.review_note = (note or "").strip() or None
+        self.review_note = note
 
     def reject(self, reviewer_id: int, note: str) -> None:
         if self.status != "PENDING":
@@ -231,6 +240,8 @@ class PumpRequest:
         note = (note or "").strip()
         if len(note) < MIN_REASON_LENGTH:
             raise DomainError(f"Từ chối phải ghi lý do ít nhất {MIN_REASON_LENGTH} ký tự")
+        if len(note) > MAX_NOTE_LENGTH:
+            raise DomainError(f"Lý do từ chối tối đa {MAX_NOTE_LENGTH} ký tự")
         self.status = "REJECTED"
         self.reviewed_by = reviewer_id
         self.review_note = note

@@ -35,7 +35,7 @@ export default function Recommendations({ notify, can, plant }) {
       </div>
       <GenerateResult result={genResult} onClose={() => setGenResult(null)} />
       <p className="hint">Mỗi đề xuất chỉ có hiệu lực trong <b>phạm vi áp dụng</b>: trong khung giờ ghi trên đề xuất và chỉ khi
-        đất còn khô hơn ngưỡng. Khi áp dụng, ESP32 bơm từng nhịp 5 giây, chờ 20 giây cho nước thấm rồi đo lại;
+        đất còn khô hơn ngưỡng. Khi áp dụng, ESP32 bơm từng nhịp 5 giây, chờ 5 giây cho nước thấm rồi đo lại;
         đất đạt <b>mục tiêu</b> là dừng, không bao giờ vượt <b>lượng nước tối đa</b>.
         Kỹ sư canh tác có thể <b>ghi đè</b> lượng nước hoặc <b>từ chối</b>, bắt buộc ghi lý do.</p>
       <div className="table-wrap">

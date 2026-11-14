@@ -88,7 +88,7 @@ export default function PlantSetup({ plant, reloadPlant, notify, can }) {
         <h3>Hệ thống tưới thế nào</h3>
         <ol className="howto">
           <li>Đất khô hơn mức <b>thấp nhất</b> của giai đoạn → hệ thống đề xuất tưới.</li>
-          <li>Tưới từng nhịp: bơm 5 giây (≈ {(5 / 60 * flow).toFixed(2)} lít), chờ 20 giây cho nước thấm, đo lại đất.</li>
+          <li>Tưới từng nhịp: bơm 5 giây (≈ {(5 / 60 * flow).toFixed(2)} lít), chờ 5 giây cho nước thấm, đo lại đất.</li>
           <li>Đất đạt giữa khoảng thấp nhất – cao nhất → <b>dừng</b>. Không bao giờ vượt <b>tối đa mỗi lần tưới</b>{" "}
             và <b>hạn mức trong ngày</b>.</li>
         </ol>

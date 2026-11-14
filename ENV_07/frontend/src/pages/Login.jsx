@@ -50,11 +50,11 @@ export default function Login({ onLogin }) {
 
         {firstRun && (
           <label>Họ tên
-            <input value={form.full_name} onChange={set("full_name")} required />
+            <input maxLength={100} value={form.full_name} onChange={set("full_name")} required />
           </label>
         )}
         <label>Tên đăng nhập
-          <input value={form.username} onChange={set("username")} autoComplete="username" required autoFocus />
+          <input maxLength={50} value={form.username} onChange={set("username")} autoComplete="username" required autoFocus />
         </label>
         <label>Mật khẩu
           <input type={showPw ? "text" : "password"} value={form.password} onChange={set("password")}

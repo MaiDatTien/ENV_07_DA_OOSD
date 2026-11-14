@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { api } from "../api.js";
-import { fmt, fmtDate, PUMP_FLOW, secondsFor } from "../utils.js";
+import { blockSign, blockSignDot, clampMax, fmt, fmtDate, MAX_DAILY_LITERS, MAX_LITERS_PER_WATERING, MAX_STAGE_DAYS,
+  PUMP_FLOW, secondsFor, todayStr } from "../utils.js";
 
 const emptyStage = () => ({ name: "", duration_days: "", moisture_min: "", moisture_max: "" });
-const today = () => new Date().toISOString().slice(0, 10);
+const today = todayStr;
 
 export default function CropsPlantings({ plant, reloadPlant, notify, can }) {
   const [crops, setCrops] = useState([]);
@@ -38,7 +39,32 @@ export default function CropsPlantings({ plant, reloadPlant, notify, can }) {
     catch (e) { notify(e.message, true); }
   };
 
-  const setS = (i, k) => (e) => setStages(stages.map((s, j) => (j === i ? { ...s, [k]: e.target.value } : s)));
+  const LIMIT = { duration_days: MAX_STAGE_DAYS, moisture_min: 100, moisture_max: 100 };
+  const setS = (i, k) => (e) => {
+    const v = k === "name" ? e.target.value : clampMax(e.target.value, LIMIT[k]);
+    setStages(stages.map((s, j) => (j === i ? { ...s, [k]: v } : s)));
+  };
+  const checkPlanting = (f) => {
+    const q = Number(f.daily_quota_liters), m = Number(f.max_liters_per_watering);
+    if (f.planted_date > todayStr()) return "Ngày trồng không được ở tương lai";
+    if (!(m > 0)) return "Tối đa mỗi lần tưới phải lớn hơn 0";
+    if (m > MAX_LITERS_PER_WATERING) return `Mỗi lần tưới tối đa ${MAX_LITERS_PER_WATERING} lít (300 giây bơm)`;
+    if (m > q) return "Tối đa mỗi lần tưới không được lớn hơn hạn mức cả ngày";
+    return "";
+  };
+  const checkStages = () => {
+    for (let i = 0; i < stages.length; i++) {
+      const s = stages[i], lo = Number(s.moisture_min), hi = Number(s.moisture_max);
+      const label = s.name || `giai đoạn ${i + 1}`;
+      if (!s.name.trim()) return `Giai đoạn ${i + 1} chưa có tên`;
+      if (!(Number(s.duration_days) >= 1)) return `${label}: số ngày phải từ 1 trở lên`;
+      if (lo < 0 || hi > 100) return `${label}: độ ẩm phải nằm trong 0 đến 100%`;
+      if (lo >= hi) return `${label}: ẩm thấp nhất phải nhỏ hơn ẩm cao nhất`;
+    }
+    const names = stages.map((s) => s.name.trim().toLowerCase());
+    if (new Set(names).size !== names.length) return "Tên các giai đoạn không được trùng nhau";
+    return "";
+  };
   const sec = (l) => (Number(l) > 0 ? `= ${secondsFor(Number(l), PUMP_FLOW)} giây bơm` : "");
   const totalDays = stages.reduce((a, s) => a + (Number(s.duration_days) || 0), 0);
 
@@ -70,16 +96,20 @@ export default function CropsPlantings({ plant, reloadPlant, notify, can }) {
           ) : (
             <form className="form" onSubmit={(e) => {
               e.preventDefault();
+              const bad = checkPlanting(edit);
+              if (bad) { notify(bad, true); return; }
               run(() => api.updatePlanting({ planted_date: edit.planted_date,
                 daily_quota_liters: Number(edit.daily_quota_liters), max_liters_per_watering: Number(edit.max_liters_per_watering) }),
                 "Đã lưu mùa vụ", () => { setEdit(null); reloadPlant(); });
             }}>
-              <label className="wide">Ngày trồng<input type="date" value={edit.planted_date} onChange={(e) => setEdit({ ...edit, planted_date: e.target.value })} required /></label>
+              <label className="wide">Ngày trồng<input type="date" max={todayStr()} value={edit.planted_date} onChange={(e) => setEdit({ ...edit, planted_date: e.target.value })} required /></label>
               <label>Hạn mức (lít / ngày)
-                <input type="number" step="0.1" min="0" value={edit.daily_quota_liters} onChange={(e) => setEdit({ ...edit, daily_quota_liters: e.target.value })} required />
+                <input type="number" step="0.1" min="0" max={MAX_DAILY_LITERS} value={edit.daily_quota_liters} onKeyDown={blockSign}
+                  onChange={(e) => setEdit({ ...edit, daily_quota_liters: clampMax(e.target.value, MAX_DAILY_LITERS) })} required />
                 <small className="conv">{sec(edit.daily_quota_liters)}</small></label>
               <label>Tối đa mỗi lần tưới (lít)
-                <input type="number" step="0.05" min="0.05" value={edit.max_liters_per_watering} onChange={(e) => setEdit({ ...edit, max_liters_per_watering: e.target.value })} required />
+                <input type="number" step="0.05" min="0.05" max={MAX_LITERS_PER_WATERING} value={edit.max_liters_per_watering} onKeyDown={blockSign}
+                  onChange={(e) => setEdit({ ...edit, max_liters_per_watering: clampMax(e.target.value, MAX_LITERS_PER_WATERING) })} required />
                 <small className="conv">{sec(edit.max_liters_per_watering)}</small></label>
               <div className="row wide"><button className="btn water">Lưu</button><button type="button" className="btn" onClick={() => setEdit(null)}>Hủy</button></div>
             </form>
@@ -93,6 +123,8 @@ export default function CropsPlantings({ plant, reloadPlant, notify, can }) {
               và được giữ lại trong lịch sử.</p>
             <form className="form" onSubmit={(e) => {
               e.preventDefault();
+              const bad = checkPlanting(start);
+              if (bad) { notify(bad, true); return; }
               run(() => api.startPlanting({ ...start, crop_id: Number(start.crop_id),
                 daily_quota_liters: Number(start.daily_quota_liters), max_liters_per_watering: Number(start.max_liters_per_watering) }),
                 "Đã bắt đầu mùa vụ mới", reloadPlant);
@@ -103,14 +135,16 @@ export default function CropsPlantings({ plant, reloadPlant, notify, can }) {
                   {crops.map((c) => <option key={c.CropId} value={c.CropId} disabled={!c.Stages.length}>
                     {c.Name}{!c.Stages.length ? " (chưa có lịch)" : ""}</option>)}
                 </select></label>
-              <label>Ngày trồng<input type="date" value={start.planted_date} onChange={(e) => setStart({ ...start, planted_date: e.target.value })} required /></label>
+              <label>Ngày trồng<input type="date" max={todayStr()} value={start.planted_date} onChange={(e) => setStart({ ...start, planted_date: e.target.value })} required /></label>
               <label>Hạn mức (lít / ngày)
-                <input type="number" step="0.1" min="0" value={start.daily_quota_liters} onChange={(e) => setStart({ ...start, daily_quota_liters: e.target.value })} required />
+                <input type="number" step="0.1" min="0" max={MAX_DAILY_LITERS} value={start.daily_quota_liters} onKeyDown={blockSign}
+                  onChange={(e) => setStart({ ...start, daily_quota_liters: clampMax(e.target.value, MAX_DAILY_LITERS) })} required />
                 <small className="conv">{sec(start.daily_quota_liters)}</small></label>
               <label>Tối đa mỗi lần tưới (lít)
-                <input type="number" step="0.05" min="0.05" value={start.max_liters_per_watering} onChange={(e) => setStart({ ...start, max_liters_per_watering: e.target.value })} required />
+                <input type="number" step="0.05" min="0.05" max={MAX_LITERS_PER_WATERING} value={start.max_liters_per_watering} onKeyDown={blockSign}
+                  onChange={(e) => setStart({ ...start, max_liters_per_watering: clampMax(e.target.value, MAX_LITERS_PER_WATERING) })} required />
                 <small className="conv">{sec(start.max_liters_per_watering)}</small></label>
-              <label className="wide">Ghi chú<input value={start.note} onChange={(e) => setStart({ ...start, note: e.target.value })} /></label>
+              <label className="wide">Ghi chú<input maxLength={300} value={start.note} onChange={(e) => setStart({ ...start, note: e.target.value })} /></label>
               <button className="btn water">Bắt đầu mùa vụ</button>
             </form>
             <div className="pump-info">Máy bơm chỉ bật / tắt, cố định <b>60 giây = 2 lít</b> (1 lít = 30 giây).</div>
@@ -155,8 +189,8 @@ export default function CropsPlantings({ plant, reloadPlant, notify, can }) {
               e.preventDefault();
               run(() => api.addCrop(newCrop), "Đã thêm loại cây", (r) => { setNewCrop({ name: "", description: "" }); setSelected(r.crop_id); });
             }}>
-              <input placeholder="Tên loại cây mới" value={newCrop.name} onChange={(e) => setNewCrop({ ...newCrop, name: e.target.value })} required />
-              <input placeholder="Ghi chú (không bắt buộc)" value={newCrop.description} onChange={(e) => setNewCrop({ ...newCrop, description: e.target.value })} />
+              <input placeholder="Tên loại cây mới" maxLength={100} value={newCrop.name} onChange={(e) => setNewCrop({ ...newCrop, name: e.target.value })} required />
+              <input placeholder="Ghi chú (không bắt buộc)" maxLength={300} value={newCrop.description} onChange={(e) => setNewCrop({ ...newCrop, description: e.target.value })} />
               <button className="btn water">+ Thêm loại cây</button>
             </form>
           )}
@@ -175,6 +209,8 @@ export default function CropsPlantings({ plant, reloadPlant, notify, can }) {
               tưới tới giữa khoảng thấp nhất – cao nhất thì dừng.</p>
             <form onSubmit={(e) => {
               e.preventDefault();
+              const bad = checkStages();
+              if (bad) { notify(bad, true); return; }
               run(() => api.saveStages(crop.CropId, stages.map((s) => ({ name: s.name, duration_days: Number(s.duration_days),
                 moisture_min: Number(s.moisture_min), moisture_max: Number(s.moisture_max) }))), "Đã lưu lịch giai đoạn", reloadPlant);
             }}>
@@ -185,10 +221,10 @@ export default function CropsPlantings({ plant, reloadPlant, notify, can }) {
                     {stages.map((s, i) => (
                       <tr key={i}>
                         <td>{i + 1}</td>
-                        <td><input value={s.name} onChange={setS(i, "name")} required disabled={!canCrop} /></td>
-                        <td><input type="number" min="1" value={s.duration_days} onChange={setS(i, "duration_days")} required disabled={!canCrop} /></td>
-                        <td><input type="number" min="0" max="100" step="0.5" value={s.moisture_min} onChange={setS(i, "moisture_min")} required disabled={!canCrop} /></td>
-                        <td><input type="number" min="0" max="100" step="0.5" value={s.moisture_max} onChange={setS(i, "moisture_max")} required disabled={!canCrop} /></td>
+                        <td><input value={s.name} maxLength={100} onChange={setS(i, "name")} required disabled={!canCrop} /></td>
+                        <td><input type="number" min="1" max={MAX_STAGE_DAYS} step="1" value={s.duration_days} onKeyDown={blockSignDot} onChange={setS(i, "duration_days")} required disabled={!canCrop} /></td>
+                        <td><input type="number" min="0" max="100" step="0.5" value={s.moisture_min} onKeyDown={blockSign} onChange={setS(i, "moisture_min")} required disabled={!canCrop} /></td>
+                        <td><input type="number" min="0" max="100" step="0.5" value={s.moisture_max} onKeyDown={blockSign} onChange={setS(i, "moisture_max")} required disabled={!canCrop} /></td>
                         <td>{canCrop && stages.length > 1 && <button type="button" className="btn sm" onClick={() => setStages(stages.filter((_, j) => j !== i))}>Xóa</button>}</td>
                       </tr>
                     ))}
