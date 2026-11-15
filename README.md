@@ -4,12 +4,6 @@
 
 Hệ thống IoT tưới cây theo giai đoạn sinh trưởng, tính lượng nước bằng lít và lưu vết mọi lần bơm.
 
-![ESP32](https://img.shields.io/badge/ESP32-Arduino-E7352C?logo=espressif&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
-![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
-![SQL Server](https://img.shields.io/badge/SQL%20Server-2019+-CC2927?logo=microsoftsqlserver&logoColor=white)
-
 [Video chạy thử](https://www.youtube.com/watch?v=uzhclfpjxz8&t=58s) · [Mã nguồn](ENV_07) · [Báo cáo và slide](Word_PPT) · [Hướng dẫn cài đặt](ENV_07/README.md)
 
 </div>
@@ -34,10 +28,6 @@ ENV-07 giải quyết việc này bằng một thiết bị ESP32 đặt tại c
 - **Đo thật:** độ ẩm đất, nhiệt độ, độ ẩm không khí được gửi lên mỗi 10 giây.
 - **Đề xuất bằng lít:** hệ thống dựa vào giai đoạn sinh trưởng, hạn mức ngày và thời tiết tại chỗ để đề xuất lượng nước, kèm phạm vi áp dụng rõ ràng.
 - **Có người chịu trách nhiệm:** ghi đè đề xuất phải có lý do, bơm ngoài đề xuất phải được duyệt, mọi lần bơm đều lưu người ra lệnh và số giây bơm thật.
-
-<p align="center">
-  <img src="ENV_07/docs/anh_chup/theodoi.png" width="85%" alt="Trang Theo dõi">
-</p>
 
 ## Cấu trúc repo
 
