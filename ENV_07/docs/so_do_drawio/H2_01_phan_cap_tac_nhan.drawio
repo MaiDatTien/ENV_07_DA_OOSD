@@ -1,0 +1,19 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram name="phan_cap_tac_nhan" id="phan_cap_tac_nhan">
+    <mxGraphModel dx="760" dy="300" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="760" pageHeight="300" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="c3" value="Người xem" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=12;html=1;whiteSpace=wrap;" vertex="1" parent="1"><mxGeometry x="75.0" y="40.0" width="30.0" height="60.0" as="geometry"/></mxCell>
+        <mxCell id="c4" value="Nông dân vận hành" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=12;html=1;whiteSpace=wrap;" vertex="1" parent="1"><mxGeometry x="265.0" y="40.0" width="30.0" height="60.0" as="geometry"/></mxCell>
+        <mxCell id="c5" value="Kỹ sư canh tác" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=12;html=1;whiteSpace=wrap;" vertex="1" parent="1"><mxGeometry x="455.0" y="40.0" width="30.0" height="60.0" as="geometry"/></mxCell>
+        <mxCell id="c6" value="Quản trị hệ thống" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=12;html=1;whiteSpace=wrap;" vertex="1" parent="1"><mxGeometry x="645.0" y="40.0" width="30.0" height="60.0" as="geometry"/></mxCell>
+        <mxCell id="c7" value="" style="html=1;rounded=0;strokeColor=#000000;fontFamily=Times New Roman;endArrow=block;endFill=0;endSize=12;startArrow=none;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="258.0" y="66.0" as="sourcePoint"/><mxPoint x="116.0" y="66.0" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c8" value="" style="html=1;rounded=0;strokeColor=#000000;fontFamily=Times New Roman;endArrow=block;endFill=0;endSize=12;startArrow=none;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="448.0" y="66.0" as="sourcePoint"/><mxPoint x="306.0" y="66.0" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c9" value="" style="html=1;rounded=0;strokeColor=#000000;fontFamily=Times New Roman;endArrow=block;endFill=0;endSize=12;startArrow=none;" edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="638.0" y="66.0" as="sourcePoint"/><mxPoint x="496.0" y="66.0" as="targetPoint"/></mxGeometry></mxCell>
+        <mxCell id="c10" value="ESP32 (thiết bị)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;fontColor=#000000;fontFamily=Times New Roman;fontSize=12;html=1;whiteSpace=wrap;" vertex="1" parent="1"><mxGeometry x="365.0" y="190.0" width="30.0" height="60.0" as="geometry"/></mxCell>
+        <mxCell id="c11" value="Tác nhân ngoài hệ thống, không đăng nhập" style="text;html=1;fontFamily=Times New Roman;fontSize=11;fontColor=#000000;align=center;verticalAlign=middle;fontStyle=2;labelBackgroundColor=#FFFFFF;" vertex="1" parent="1"><mxGeometry x="281.0" y="279.0" width="198.0" height="17.0" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
