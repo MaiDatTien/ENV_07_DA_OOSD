@@ -3,9 +3,9 @@
 #include <ArduinoJson.h>
 #include <DHT.h>
 
-const char* WIFI_SSID     = "wifi_bro";
-const char* WIFI_PASSWORD = "pass_cua_bro";
-const char* SERVER_URL    = "http://ipv4_trong_ipconfig_cua_bro:8000";
+const char* WIFI_SSID     = "ten_wifi_2.4g";
+const char* WIFI_PASSWORD = "pass_wifi_2.4G";
+const char* SERVER_URL    = "http://ipv4_config:8000";
 const char* DEVICE_CODE   = "ESP32-01";
 
 const int SOIL_DRY = 4095;

@@ -1,9 +1,28 @@
+import os
+from pathlib import Path
+
+
+def _load_env() -> None:
+    env = Path(__file__).resolve().parent.parent / ".env"
+    if not env.exists():
+        return
+    for line in env.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip())
+
+
+_load_env()
+
+
 class Settings:
-    DB_SERVER = "localhost"
-    DB_NAME = "ENV07_DB"
-    DB_USER = "sa"
-    DB_PASSWORD = "123"
-    DB_DRIVER = "ODBC Driver 17 for SQL Server"
+    DB_SERVER = os.getenv("DB_SERVER", "localhost")
+    DB_NAME = os.getenv("DB_NAME", "ENV07_DB")
+    DB_USER = os.getenv("DB_USER", "sa")
+    DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+    DB_DRIVER = os.getenv("DB_DRIVER", "ODBC Driver 17 for SQL Server")
 
     PUMP_FLOW_LPM = 2.0
 
