@@ -6,7 +6,7 @@
 
 - Sinh viên: Mai Tiến Đạt - 1250080030 - K12_ĐH_CNPM1
 - Giảng viên hướng dẫn: Th.S Phạm Trọng Huynh
-- Video chạy thử: https://www.youtube.com/watch?v=uzhclfpjxz8&t=58s
+- Video thực hiện chạy thử: https://www.youtube.com/watch?v=uzhclfpjxz8&t=0s
 
 ## Nội dung repo
 
